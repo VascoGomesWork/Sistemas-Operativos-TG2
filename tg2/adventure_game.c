@@ -74,21 +74,54 @@ void init_map(struct Cell *map){
     map[0].up = -1;
     map[0].down = -1;
     map[0].object = -1;
-    strcpy(map[0].description, "TESTE1");
+    map[0].treasure = -1;
+    strcpy(map[0].description, "Você está na entrada de uma masmorra.\n Existe um monstro que tem de derrotar para chegar ao tesouro\n");
 
     map[1].north = -1;
-    map[1].south = -1;
+    map[1].south = 1;
     map[1].west = -1;
-    map[1].east = 1;
+    map[1].east = 2;
     map[1].up = -1;
     map[1].down = -1;
-    map[1].object = 1;
+    map[1].object = -1;
+    map[1].treasure = -1;
     strcpy(map[1].description, "TESTE 2");
+
+    map[2].north = 1;
+    map[2].south = -1;
+    map[2].west = -1;
+    map[2].east = 1;
+    map[2].up = -1;
+    map[2].down = -1;
+    map[2].object = 1;
+    map[2].treasure = -1;
+    strcpy(map[2].description, "TESTE 3");
+
+    map[3].north = -1;
+    map[3].south = 1;
+    map[3].west = 1;
+    map[3].east = -1;
+    map[3].up = -1;
+    map[3].down = -1;
+    map[3].object = 1;
+    map[3].treasure = -1;
+    strcpy(map[1].description, "TESTE 4");
+
+    map[4].north = -1;
+    map[4].south = -1;
+    map[4].west = 1;
+    map[4].east = -1;
+    map[4].up = -1;
+    map[4].down = -1;
+    map[4].object = 1;
+    map[4].treasure = 1;
+    strcpy(map[1].description, "TESTE 5");
 }
 
 void print_map(struct Cell *map, int n_cells){
     for(int i = 0; i < n_cells; i++){
         printf("-------Cell %d -----------------\n", i);
+        printf("Description = %s\n", map[i].description);
         printf("North = %d\n", map[i].north);
         printf("South = %d\n", map[i].south);
         printf("West = %d\n", map[i].west);
@@ -96,7 +129,6 @@ void print_map(struct Cell *map, int n_cells){
         printf("Up = %d\n", map[i].up);
         printf("Down = %d\n", map[i].down);
         printf("Object = %d\n", map[i].object);
-        printf("Description = %s\n", map[i].description);
         printf("--------------------------------\n");
     }
     
@@ -116,12 +148,16 @@ void change_monster_cell(struct Monster *monster, int cell){
     monster->cell = cell;
 }
 
+void change_player_cell(struct Player *player, int cell){
+    player->cell = cell;
+}
+
 void change_monster_energy(struct Monster *monster, int energy){
-    monster->energy = energy;
+    monster->energy = monster->energy - energy;
 }
 
 void change_player_energy(struct Player *player, int energy){
-    player->energy = energy;
+    player->energy = player->energy - energy;
 }
 
 int get_monster_energy(struct Monster *monster){
@@ -130,6 +166,34 @@ int get_monster_energy(struct Monster *monster){
 
 int get_player_energy(struct Player *player){
     return player->energy;
+}
+
+void get_player_descrition_location(struct Player *player, struct Cell *map){
+    printf("\nPlayer Cell Description: \n%s\n",map[player->cell].description);
+        printf("----------------- Cell %d -----------------\n", player->cell);
+        printf("0 - North = %d\n", map[player->cell].north);
+        printf("1 - South = %d\n", map[player->cell].south);
+        printf("2 - West = %d\n", map[player->cell].west);
+        printf("3 - East = %d\n", map[player->cell].east);
+        printf("4 - Up = %d\n", map[player->cell].up);
+        printf("5 - Down = %d\n", map[player->cell].down);
+        printf("Object = %d\n", map[player->cell].object);
+}
+
+char read_player_input(struct Player *player, struct Cell *map){
+    int cell_array[6] = {map[player->cell].north, map[player->cell].south, map[player->cell].west, map[player->cell].east, map[player->cell].up, map[player->cell].down};
+    int selected_option = 0;
+    int cell = -1;
+    do{
+        printf("Observe os pontos do mapa e indique para que celula se quer mover\n");
+        //Reads the Player Input from the keyboard
+        scanf("%d", &selected_option);
+        //Gets 
+        cell = cell_array[selected_option];
+        printf("CELL = %d\n", cell);
+
+    }while(cell == -1);
+    
 }
 
 int main(){
@@ -144,16 +208,16 @@ int main(){
     init_player(&player);
 
     //print_player
-    print_player(player);
+    //print_player(player);
 
     //Sends the memory address of the map structure to the function init_map()
     init_map(map);
      
-    print_map(map, n_cells);
+    //print_map(map, n_cells);
 
     init_monster(&monster);
 
-    print_monster(&monster);
+    //print_monster(&monster);
 
     /*
     //Need to Use Threads to make the interation between the player and the monster
@@ -168,15 +232,16 @@ int main(){
         }
     Apresentar resultado final
     */
-    change_player_energy(&player, 0);
-    //change_monster_energy(&monster, 0);
     printf("Player Energy = %d\n", get_player_energy(&player));
     do
     {
-        change_monster_cell(&monster, 2);
+        change_monster_cell(&monster, 4);
         print_monster(&monster);
-        change_monster_energy(&monster, 0);
-    }while (get_player_energy(&player) > 0 || get_monster_energy(&monster) > 0);
+        get_player_descrition_location(&player, map);
+        change_player_cell(&player, read_player_input(&player, map));
+
+        change_monster_energy(&monster, 100);
+    }while (get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0);
     printf("-------GAME OVER---------\n");
 
     return 0;
