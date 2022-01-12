@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define MAX_PLAYER_NAME 50
 #define INITIAL_PLAYER_ENERGY 100
@@ -78,44 +80,44 @@ void init_map(struct Cell *map){
     strcpy(map[0].description, "Você está na entrada de uma masmorra.\n Existe um monstro que tem de derrotar para chegar ao tesouro\n");
 
     map[1].north = -1;
-    map[1].south = 1;
-    map[1].west = -1;
-    map[1].east = 2;
+    map[1].south = 2;
+    map[1].west = 0;
+    map[1].east = 3;
     map[1].up = -1;
     map[1].down = -1;
     map[1].object = -1;
     map[1].treasure = -1;
-    strcpy(map[1].description, "TESTE 2");
+    strcpy(map[1].description, "Esta é a sala 1 da masmorra");
 
     map[2].north = 1;
     map[2].south = -1;
     map[2].west = -1;
-    map[2].east = 1;
+    map[2].east = 4;
     map[2].up = -1;
     map[2].down = -1;
     map[2].object = 1;
     map[2].treasure = -1;
-    strcpy(map[2].description, "TESTE 3");
+    strcpy(map[2].description, "Você chegou a sala 2 da masmorra. Esta contem um objeto para combater o monstro!");
 
     map[3].north = -1;
-    map[3].south = 1;
+    map[3].south = -1;
     map[3].west = 1;
     map[3].east = -1;
     map[3].up = -1;
     map[3].down = -1;
     map[3].object = 1;
     map[3].treasure = -1;
-    strcpy(map[1].description, "TESTE 4");
+    strcpy(map[3].description, "Esta é a sala 3, aqui pode encontrar um objeto");
 
     map[4].north = -1;
     map[4].south = -1;
-    map[4].west = 1;
+    map[4].west = 2;
     map[4].east = -1;
     map[4].up = -1;
     map[4].down = -1;
-    map[4].object = 1;
+    map[4].object = -1;
     map[4].treasure = 1;
-    strcpy(map[1].description, "TESTE 5");
+    strcpy(map[4].description, "Esta é a sala 5, e para chegar ao tesouro, você tem de derrotar o monstro");
 }
 
 void print_map(struct Cell *map, int n_cells){
@@ -168,6 +170,14 @@ int get_player_energy(struct Player *player){
     return player->energy;
 }
 
+int get_player_cell(struct Player *player){
+    return player->cell;
+}
+
+int get_monster_cell(struct Monster *monster){
+    return monster->cell;
+}
+
 void get_player_descrition_location(struct Player *player, struct Cell *map){
     printf("\nPlayer Cell Description: \n%s\n",map[player->cell].description);
         printf("----------------- Cell %d -----------------\n", player->cell);
@@ -180,7 +190,7 @@ void get_player_descrition_location(struct Player *player, struct Cell *map){
         printf("Object = %d\n", map[player->cell].object);
 }
 
-char read_player_input(struct Player *player, struct Cell *map){
+int read_player_input(struct Player *player, struct Cell *map){
     int cell_array[6] = {map[player->cell].north, map[player->cell].south, map[player->cell].west, map[player->cell].east, map[player->cell].up, map[player->cell].down};
     int selected_option = 0;
     int cell = -1;
@@ -193,7 +203,21 @@ char read_player_input(struct Player *player, struct Cell *map){
         printf("CELL = %d\n", cell);
 
     }while(cell == -1);
-    
+    return cell;
+}
+
+int random_get_monster_cell(struct Monster *monster, struct Cell *map){
+    int cell_array[6] = {map[monster->cell].north, map[monster->cell].south, map[monster->cell].west, map[monster->cell].east, map[monster->cell].up, map[monster->cell].down};
+    int cell = -1;
+    int random = 0;
+    //Check if the position to where the monster wants to move is possible or not
+    do{
+        //Do a random so, the mosnter can be moved
+        random = (rand() % 5);
+        cell = cell_array[random];
+        printf("Rando Number = %d\n", cell);
+    }while(cell == -1);
+    return cell;
 }
 
 int main(){
@@ -232,17 +256,37 @@ int main(){
         }
     Apresentar resultado final
     */
+    int player_cell_input = 0;
     printf("Player Energy = %d\n", get_player_energy(&player));
     do
     {
-        change_monster_cell(&monster, 4);
-        print_monster(&monster);
-        get_player_descrition_location(&player, map);
-        change_player_cell(&player, read_player_input(&player, map));
+        change_monster_cell(&monster, random_get_monster_cell(&monster, map));
+        //print_monster(&monster);
 
-        change_monster_energy(&monster, 100);
+        //while the player cell && monster cell are different from one another player and monster moves
+        while(get_player_cell(&player) != get_monster_cell(&monster)){
+            print_monster(&monster);
+            get_player_descrition_location(&player, map);
+            //Gets the cell that the player choosed
+            player_cell_input = read_player_input(&player, map);
+            change_player_cell(&player, player_cell_input);
+        }
+        //while(get_player_cell(&player) == get_monster_cell(&monster) && get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0){
+        if(get_player_cell(&player) == get_monster_cell(&monster)){
+            printf("\nLUTAR\n");
+            change_monster_energy(&monster, 10);
+        }
+        //change_player_energy(&player, 100);
+        
     }while (get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0);
-    printf("-------GAME OVER---------\n");
+    
+    //Greats the Player for winning the game or losing
+    if(get_player_energy(&player) <= 0){
+        printf("-------GAME OVER---------\n");
+    }
+    else{
+        printf("-------CONGRATS YOU WON!!---------\n");
+    }
 
     return 0;
     
