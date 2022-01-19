@@ -27,10 +27,10 @@ struct Player{
   int treasure;
 };
 
-struct Monster{
+typedef struct monster{
     int energy;
     int cell; //Monster Location in the Map
-};
+}Monster;
 
 struct Object{
     char name[MAX_OBJECT_NAME];
@@ -49,10 +49,10 @@ struct Cell{
     int treasure;
 };
 
-struct Monster_Thread_Struct{
+/*struct Monster_Thread_Struct{
     struct Monster monster;
     int cell;
-};
+};*/
 
 void init_player(struct Player *player){
     //Uses pointer to modify the variable through it's memory address
@@ -145,12 +145,12 @@ void print_map(struct Cell *map, int n_cells){
     
 }
 
-void init_monster(struct Monster *monster){
+void init_monster(Monster *monster){
     monster->energy = INITIAL_MONSTER_ENERGY;
     monster->cell = INITIAL_MONSTER_CELL;
 }
 
-void print_monster(struct Monster *monster){
+void print_monster(Monster *monster){
     printf("Monster Energy = %d\n", monster->energy);
     printf("Monster Cell = %d\n", monster->cell);
 }
@@ -159,26 +159,18 @@ void print_monster(struct Monster *monster){
     monster->cell = cell;
 }*/
 
-void * change_monster_cell(void * arg){
-    //monster->cell = cell;
-    struct Monster * monster;// = (struct Monster_Thread_Struct *)arg->monster;
-    //struct Monster * monster =  arg;
-    //struct Monster_Thread_Struct * monster_thread_struct = arg;
-    //monster->cell = (struct Monster_Thread_Struct *)monster->cell;
-    monster->cell =  3;
-    //printf("MONSTER THREAD CELL = %d\n", monster->cell);
-    printf("MONSTER THREAD\n");
-    //monster->cell = *monster->cell;
-    
-    //pthread_exit(NULL);
-    return NULL;
+void * change_monster_cell(void * monster){
+
+    Monster * monster1 = (Monster*)monster;// = (struct Monster_Thread_Struct *)arg->monster;
+    monster1->cell = 3;//Mudar para função random
+    pthread_exit(NULL);
 }
 
 void change_player_cell(struct Player *player, int cell){
     player->cell = cell;
 }
 
-void change_monster_energy(struct Monster *monster, int energy){
+void change_monster_energy(Monster *monster, int energy){
     monster->energy = monster->energy - energy;
 }
 
@@ -186,7 +178,7 @@ void change_player_energy(struct Player *player, int energy){
     player->energy = player->energy - energy;
 }
 
-int get_monster_energy(struct Monster *monster){
+int get_monster_energy(Monster *monster){
     return monster->energy;
 }
 
@@ -198,7 +190,7 @@ int get_player_cell(struct Player *player){
     return player->cell;
 }
 
-int get_monster_cell(struct Monster *monster){
+int get_monster_cell(Monster *monster){
     return monster->cell;
 }
 
@@ -230,7 +222,7 @@ int read_player_input(struct Player *player, struct Cell *map){
     return cell;
 }
 
-int random_get_monster_cell(struct Monster *monster, struct Cell *map){
+int random_get_monster_cell(Monster *monster, struct Cell *map){
     int cell_array[6] = {map[monster->cell].north, map[monster->cell].south, map[monster->cell].west, map[monster->cell].east, map[monster->cell].up, map[monster->cell].down};
     int cell = -1;
     int random = 0;
@@ -247,11 +239,11 @@ int random_get_monster_cell(struct Monster *monster, struct Cell *map){
 int main(){
 
     struct Player player;
-    struct Monster monster;
+    Monster monster;
     struct Cell map[MAX_CELL];
     int n_cells = 4;
     struct Object object[MAX_NUMBER_OBJECT];
-    struct Monster_Thread_Struct monster_thread_struct;
+    //struct Monster_Thread_Struct monster_thread_struct;
     int player_cell_input = 0;
     //Player Thread Creation Using pthread Lybrary
     pthread_t player_thread;
@@ -273,14 +265,10 @@ int main(){
 
     //print_monster(&monster);
     //TODO - Implementar THREADS
-    malloc(sizeof(monster));
     do
     {
 
         
-        
-        //Monster is only moving when he takes a hit
-        //change_monster_cell(&monster, random_get_monster_cell(&monster, map));
             
         //while the player cell && monster cell are different from one another player and monster moves
         while(get_player_cell(&player) != get_monster_cell(&monster)){
@@ -302,12 +290,12 @@ int main(){
             printf("\nLUTAR\n");
             change_monster_energy(&monster, 10);
         }
-        monster_thread_struct.monster = monster;
-        monster_thread_struct.cell = random_get_monster_cell(&monster, map);
-        pthread_create(&monster_thread, NULL, change_monster_cell, &monster_thread_struct);
-        //(void *) &monster_thread_struct
+
+        pthread_create(&monster_thread, NULL, change_monster_cell, (void *) &monster);
         printf("THREAD\n");
-        //monster.cell = 3;
+        
+        
+        
         
     }while (get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0);
     
