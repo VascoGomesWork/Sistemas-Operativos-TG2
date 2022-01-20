@@ -21,11 +21,16 @@
 #define MAX_TREASURE_NAME 50
 #define MAX_NUMBER_OBJECT 50
 
+typedef struct object{
+    char name[MAX_OBJECT_NAME];
+    int figh_efficiency_level;
+}Object;
+
 typedef struct player{ 
   char name[MAX_PLAYER_NAME];
   int energy;
   int cell; //Player Location in the Map
-  int object;
+  Object object;
   int treasure;
 }Player;
 
@@ -34,11 +39,6 @@ typedef struct monster{
     int cell; //Monster Location in the Map
 }Monster;
 
-typedef struct object{
-    char name[MAX_OBJECT_NAME];
-    int figh_efficiency_level;
-}Object;
-
 typedef struct cell{
     int north;
     int south;
@@ -46,18 +46,17 @@ typedef struct cell{
     int west;
     int up;
     int down;
+    int object_boolean;
     char description[MAX_CELL_DESCRIPTION];
-    char object[MAX_OBJECT_NAME];
+    Object object;
     char treasure[MAX_TREASURE_NAME];
 }Cell;
 
 
-/*struct Monster_Thread_Struct{
-    struct Monster monster;
-    int cell;
-};*/
-
 void init_player(Player *player){
+    Object object;
+    strcpy(object.name, "NO OBJECT");
+    object.figh_efficiency_level = 0;
     //Uses pointer to modify the variable through it's memory address
     //Asks the Player what is name is
     printf("Olá Jogador!\nQual é o seu Nome?\n");
@@ -68,7 +67,7 @@ void init_player(Player *player){
     //Sets the Player energy, cell, object and treasure
     player->energy = INITIAL_PLAYER_ENERGY;
     player->cell = INITIAL_PLAYER_CELL;
-    player->object = NO_OBJECT;
+    player->object = object;
     player->treasure = NO_TREASURE;
 }
 
@@ -81,13 +80,31 @@ void print_player(Player player){
 }
 
 void init_map(Cell *map){
+    //Object 1
+    Object object1;
+    strcpy(object1.name, "Sem Objeto");
+    object1.figh_efficiency_level = -1;
+
+    //Object 2
+    Object object2;
+    strcpy(object2.name, "Espada Escalibur");
+    object2.figh_efficiency_level = 75;
+
+    //Object 3
+    Object object3;
+    strcpy(object3.name, "Chinelo Voador");
+    object3.figh_efficiency_level = 40;
+    
+    Object object_array[3] = {object1, object2, object3};
+
     map[0].north = -1;
     map[0].south = -1;
     map[0].west = -1;
     map[0].east = 1;
     map[0].up = -1;
     map[0].down = -1;
-    strcpy(map[0].object, "Não existem objetos nesta sala\n");
+    map[0].object_boolean = -1;
+    map[0].object = object_array[0];
     strcpy(map[0].treasure, "Não existem tesouros nesta sala\n");
     strcpy(map[0].description, "Você está na entrada de uma masmorra.\n Existe um monstro que tem de derrotar para chegar ao tesouro\n");
 
@@ -97,7 +114,8 @@ void init_map(Cell *map){
     map[1].east = 3;
     map[1].up = -1;
     map[1].down = -1;
-    strcpy(map[1].object, "Não existem objetos nesta sala\n");
+    map[1].object_boolean = -1;
+    map[1].object = object_array[0];
     strcpy(map[1].treasure, "Não existem tesouros nesta sala\n");
     strcpy(map[1].description, "Esta é a sala 1 da masmorra");
 
@@ -107,7 +125,8 @@ void init_map(Cell *map){
     map[2].east = 4;
     map[2].up = -1;
     map[2].down = -1;
-    strcpy(map[2].object, "Existe um objeto nesta sala\n");
+    map[2].object_boolean = 1;
+    map[2].object = object_array[1];
     strcpy(map[2].treasure, "Não existem tesouros nesta sala\n");
     strcpy(map[2].description, "Você chegou a sala 2 da masmorra. Esta contem um objeto para combater o monstro!");
 
@@ -117,7 +136,8 @@ void init_map(Cell *map){
     map[3].east = -1;
     map[3].up = -1;
     map[3].down = -1;
-    strcpy(map[3].object, "Existe um objeto nesta sala\n");
+    map[3].object_boolean = 1;
+    map[3].object = object_array[2];
     strcpy(map[3].treasure, "Não existem tesouros nesta sala\n");
     strcpy(map[3].description, "Esta é a sala 3, aqui pode encontrar um objeto");
 
@@ -127,7 +147,8 @@ void init_map(Cell *map){
     map[4].east = -1;
     map[4].up = -1;
     map[4].down = -1;
-    strcpy(map[4].object, "Não existe um objeto nesta sala\n");
+    map[4].object_boolean = -1;
+    map[4].object = object_array[0];
     strcpy(map[4].treasure, "O tesouro está nesta sala\n");
     strcpy(map[4].description, "Esta é a sala 5, e para chegar ao tesouro, você tem de derrotar o monstro");
 }
@@ -203,16 +224,32 @@ void get_player_descrition_location(Player *player, Cell *map){
         printf("3 - Este = %d\n", map[player->cell].east);
         printf("4 - Andar de Cima = %d\n", map[player->cell].up);
         printf("5 - Andar de Baixo = %d\n", map[player->cell].down);
-        printf("Objeto = %s\n", map[player->cell].object);
+        printf("Objeto = %s\n", map[player->cell].object.name);
 }
 
 int read_player_input(Player *player){
     Cell map[MAX_CELL];
     init_map(map);
     get_player_descrition_location(player, map);
+
     int cell_array[6] = {map[player->cell].north, map[player->cell].south, map[player->cell].west, map[player->cell].east, map[player->cell].up, map[player->cell].down};
     int cell = -1;
     int selected_option = 0;
+    char answer[2];
+    //Checks if there is an object in the current room
+    if(map[player->cell].object_boolean == 1){
+        printf("\nVocê encontrou um objeto que pode ser usado no combate com o monstro!\n");
+        printf("Nome do Objeto = %s | Eficiência do Objeto = %d\n", map[player->cell].object.name, map[player->cell].object.figh_efficiency_level);
+        printf("Você deseja guardar o objeto?\n Responda s caso sim, ou n caso não\n");
+        scanf("%s", answer);
+        printf("answer = %s\n", answer);
+
+        if(strcmp(answer, "s") == 0){
+            player->object = map[player->cell].object;
+            printf("\nObjeto Apanhado = %s\n", player->object.name);
+        }
+    }
+
     do{
         printf("Observe os pontos do mapa e indique para que celula se quer mover\n");
         //Reads the Player Input from the keyboard
@@ -240,13 +277,34 @@ int random_get_monster_cell(Monster *monster){
     return cell;
 }
 
+
+
+int get_player_decision(Player *player){
+    Object object;
+    Object option_array[3] = {player->object, 10, 0};
+    int option = -1;
+    int choosen_option = -1;
+    int efitiency = 0;
+    printf("Você encontrou o Monstro. Arregaçe as mangas porque agora vai ter que lutar!!\n");
+    printf("Escolha de entre as opções abaixo o que deseja fazer.\n");
+    do{
+        printf("0 - Lutar com -> %d | Eficiência -> %d\n", player->object, 20);
+        printf("1 - Lutar com -> Punhos há Homem | Eficiência -> 10\n");
+        printf("2 - Fugir Daqui para Fora\n");
+        scanf("%d", choosen_option);
+        //option = option_array[choosen_option];
+    }while(option == -1);
+
+    return option;
+}
+
 int main(){
 
     Player player;
     Monster monster;
     Cell map[MAX_CELL];
     int n_cells = 4;
-    Object object[MAX_NUMBER_OBJECT];
+    //Object object[MAX_NUMBER_OBJECT];
     int player_cell_input = 0;
     int check = 0;
     //Sends the memory address of the player structure to the function init_player()
@@ -272,6 +330,7 @@ int main(){
     pthread_create(&player_thread, NULL, change_player_cell, (void *) &player);
     do
     {
+
         //Calls already Created Monster_Cell
         change_monster_cell(&monster);
         
@@ -284,9 +343,11 @@ int main(){
         pthread_join(player_thread, NULL);
         if(get_player_cell(&player) == get_monster_cell(&monster)){
             //pthread_join makes the main thread wait for the other threads to finish
-            //pthread_join(monster_thread, NULL);
+            pthread_join(monster_thread, NULL);
+            pthread_join(player_thread, NULL);
             
             printf("\nLUTAR\n");
+            //get_player_decision(&player);
             change_monster_energy(&monster, 10);
         } 
         check = 1;
