@@ -12,6 +12,14 @@ typedef struct monster{
     int cell; //Monster Location in the Map
 }Monster;
 
+typedef struct map{
+    int north;
+}Map;
+
+int return_cell(Monster * monster){
+    Map * cell;
+    return 20;
+}
 
 void * change_monster_cell(void * monster){
     //monster->cell = cell;
@@ -19,7 +27,7 @@ void * change_monster_cell(void * monster){
     Monster * monster1 = (Monster*)monster;// = (struct Monster_Thread_Struct *)arg->monster;
     //malloc(sizeof(&monster));
     
-    monster1->cell = 3;
+    monster1->cell = return_cell(monster1);
 
     //printf("MONSTER THREAD CELL = %d\n", monster->cell);
     
