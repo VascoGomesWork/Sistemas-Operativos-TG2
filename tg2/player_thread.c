@@ -96,49 +96,77 @@ void init_map(Cell *map){
     strcpy(map[4].description, "Esta é a sala 5, e para chegar ao tesouro, você tem de derrotar o monstro");
 }
 
-/*void * change_monster_cell(void * monster){
-    Monster * monster1 = (Monster*)monster;// = (struct Monster_Thread_Struct *)arg->monster;
-    monster1->cell = random_get_monster_cell(monster1);//Mudar para função random
-    pthread_exit(NULL);
-}*/
+void * change_monster_cell(void * monster){
+    printf("Monster Moving");
+}
 
 void * change_player_cell(void * player){
      
-    Player * player1 = (Player*)player;
-    player1->cell = read_player_input(player1);
-    printf("Player Cell = %d\n", player1->cell);
-    pthread_exit(NULL);
-    //player->cell = cell;
+    printf("Player Moving");
 }
+
+
 
 int read_player_input(Player *player){
     Cell map[MAX_CELL];
     init_map(map);
     int cell_array[6] = {map[player->cell].north, map[player->cell].south, map[player->cell].west, map[player->cell].east, map[player->cell].up, map[player->cell].down};
-    /*int cell = -1;
+    int cell = -1;
     int selected_option = 0;
     do{
         printf("Observe os pontos do mapa e indique para que celula se quer mover\n");
         //Reads the Player Input from the keyboard
-        wait(NULL);
         scanf("%d", &selected_option);
         //Gets 
         cell = cell_array[selected_option];
         printf("CELL = %d\n", cell);
 
-    }while(cell == -1);*/
-    return 3;
+    }while(cell == -1);
+    return cell;
+}
+
+int get_player_cell(Player *player){
+    return player->cell;
+}
+
+int get_monster_cell(Monster *monster){
+    return monster->cell;
 }
 
 int main(){
 
     Player player;
     Cell map[MAX_CELL];
-
+    Monster monster;
     //Player Thread Creation Using pthread Lybrary
     pthread_t player_thread;
+    pthread_t monster_thread;
 
+    pthread_create(&monster_thread, NULL, change_monster_cell, (void *) &monster);
     pthread_create(&player_thread, NULL, change_player_cell, (void *) &player);
-    pthread_join(player_thread, NULL);
+    //pthread_join(player_thread, NULL);
+    int i = 0;
+    do
+    {
+        
+        printf("THREAD\n");
+        //Calls already Created Monster_Cell
+        change_monster_cell(&monster);
+        
+        //print_monster(&monster);
+        //get_player_descrition_location(&player, map);
+            
+        //Calls Already Created Player_Cell
+        change_player_cell(&player);
+        
+        if(get_player_cell(&player) == get_monster_cell(&monster)){
+            //pthread_join makes the main thread wait for the other threads to finish
+            //pthread_join(monster_thread, NULL);
+            
+            printf("\nLUTAR\n");
+            //change_monster_energy(&monster, 10);
+        } 
+        i++;
+    }while (i < 6);
 
 }
