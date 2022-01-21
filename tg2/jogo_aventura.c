@@ -52,7 +52,11 @@ typedef struct cell{
     char treasure[MAX_TREASURE_NAME];
 }Cell;
 
-
+/**
+ * @brief Função de Iniciação do Jogador
+ * 
+ * @param player 
+ */
 void init_player(Player *player){
     Object object;
     strcpy(object.name, "Punhos há Homem");
@@ -71,6 +75,11 @@ void init_player(Player *player){
     player->treasure = NO_TREASURE;
 }
 
+/**
+ * @brief Função para mostrar os detalhes do jogador
+ * 
+ * @param player 
+ */
 void print_player(Player player){
     printf("Nome do Jogador = %s\n", player.name);
     printf("Energia do Jogador = %d\n", player.energy);
@@ -79,6 +88,11 @@ void print_player(Player player){
     printf("Tesouro do Jogador = %d\n", player.treasure);
 }
 
+/**
+ * @brief Função de inicialização do mapa do jogo
+ * 
+ * @param map 
+ */
 void init_map(Cell *map){
     //Object 1
     Object object1;
@@ -153,6 +167,12 @@ void init_map(Cell *map){
     strcpy(map[4].description, "Você entrou na cozinha, e esta sala do castelo contem o tesouro");
 }
 
+/**
+ * @brief Função que mostra os detalhes do mapa
+ * 
+ * @param map 
+ * @param n_cells 
+ */
 void print_map(Cell *map, int n_cells){
     for(int i = 0; i < n_cells; i++){
         printf("-------Cell %d -----------------\n", i);
@@ -169,21 +189,43 @@ void print_map(Cell *map, int n_cells){
     } 
 }
 
+/**
+ * @brief Função que inicializa o monstro
+ * 
+ * @param monster 
+ */
 void init_monster(Monster *monster){
     monster->energy = INITIAL_MONSTER_ENERGY;
     monster->cell = INITIAL_MONSTER_CELL;
 }
 
+/**
+ * @brief Função que mostra os detalhes do monstro
+ * 
+ * @param monster 
+ */
 void print_monster(Monster *monster){
     printf("Energia do Monstro = %d\n", monster->energy);
     printf("Cell do Monstro = %d\n", monster->cell);
 }
 
+/**
+ * @brief Função associada a Thread do monstro que realiza a sua movimentação
+ * 
+ * @param monster 
+ * @return void* 
+ */
 void * change_monster_cell(void * monster){
     Monster * monster1 = (Monster*)monster;
     monster1->cell = random_get_monster_cell(monster1);//Mudar para função random
 }
 
+/**
+ * @brief Função associada a Thread do jogador que pede ao utilizador a cell para que o jogador deve ser movimentado
+ * 
+ * @param player 
+ * @return void* 
+ */
 void * change_player_cell(void * player){
      
     Player * player1 = (Player*)player;
@@ -191,30 +233,72 @@ void * change_player_cell(void * player){
     player1->cell = read_player_input(player1);
 }
 
+/**
+ * @brief Função que decrementa a energia do monstro
+ * 
+ * @param monster 
+ * @param energy 
+ */
 void change_monster_energy(Monster *monster, int energy){
     monster->energy = monster->energy - energy;
 }
 
+/**
+ * @brief Função que decrementa a energia do jogador
+ * 
+ * @param player 
+ * @param energy 
+ */
 void change_player_energy(Player *player, int energy){
     player->energy = player->energy - energy;
 }
 
+/**
+ * @brief Função que retorna a energia do monstro
+ * 
+ * @param monster 
+ * @return int 
+ */
 int get_monster_energy(Monster *monster){
     return monster->energy;
 }
 
+/**
+ * @brief Função que retorna a energia do jogador
+ * 
+ * @param player 
+ * @return int 
+ */
 int get_player_energy(Player *player){
     return player->energy;
 }
 
+/**
+ * @brief Função que retorna a cell do jogador
+ * 
+ * @param player 
+ * @return int 
+ */
 int get_player_cell(Player *player){
     return player->cell;
 }
 
+/**
+ * @brief Função que retorna a cell do monstro
+ * 
+ * @param monster 
+ * @return int 
+ */
 int get_monster_cell(Monster *monster){
     return monster->cell;
 }
 
+/**
+ * @brief Função que descreve ao utilizador a cell em que este está, atavés da linha de comandos
+ * 
+ * @param player 
+ * @param map 
+ */
 void get_player_descrition_location(Player *player, Cell *map){
     printf("\nDescrição da Cell do Jogador: \n%s\n",map[player->cell].description);
         printf("----------------- Cell %d -----------------\n", player->cell);
@@ -228,6 +312,12 @@ void get_player_descrition_location(Player *player, Cell *map){
         printf("Tesouro = %s\n", map[player->cell].treasure);
 }
 
+/**
+ * @brief Função que lê a opção escolhida pelo utilizador
+ * 
+ * @param player 
+ * @return int 
+ */
 int read_player_input(Player *player){
     Cell map[MAX_CELL];
     init_map(map);
@@ -261,6 +351,12 @@ int read_player_input(Player *player){
     return cell;
 }
 
+/**
+ * @brief Função que seleciona aleatoriamente a cell para onde o monstro vai
+ * 
+ * @param monster 
+ * @return int 
+ */
 int random_get_monster_cell(Monster *monster){
     Cell map[MAX_CELL];
     init_map(map);
@@ -276,6 +372,12 @@ int random_get_monster_cell(Monster *monster){
     return cell;
 }
 
+/**
+ * @brief Função que pergunta ao utilizador qual a sua decisão numa luta com o monstro
+ * 
+ * @param player 
+ * @return int 
+ */
 int get_player_decision(Player *player){
     Object object;
     int option_array[2] = {player->object.figh_efficiency_level, 0};
@@ -294,6 +396,12 @@ int get_player_decision(Player *player){
     return option;
 }
 
+/**
+ * @brief Função que seleciona aleatoriamente qual a decisão de luta com o jogador
+ * 
+ * @param monster 
+ * @return int 
+ */
 int get_monster_decision(Monster *monster){
     //Monster has a Heavy Atack and a Light Atack and can run away
     int option_array[3] = {50, 30, 0};
