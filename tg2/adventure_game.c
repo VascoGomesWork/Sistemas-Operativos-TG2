@@ -32,6 +32,7 @@ typedef struct player{
   int cell; //Player Location in the Map
   Object object;
   int treasure;
+  int time_to_fight;
 }Player;
 
 typedef struct monster{
@@ -55,8 +56,8 @@ typedef struct cell{
 
 void init_player(Player *player){
     Object object;
-    strcpy(object.name, "NO OBJECT");
-    object.figh_efficiency_level = 0;
+    strcpy(object.name, "Punhos há Homem");
+    object.figh_efficiency_level = 10;
     //Uses pointer to modify the variable through it's memory address
     //Asks the Player what is name is
     printf("Olá Jogador!\nQual é o seu Nome?\n");
@@ -188,6 +189,7 @@ void * change_monster_cell(void * monster){
 void * change_player_cell(void * player){
      
     Player * player1 = (Player*)player;
+
     player1->cell = read_player_input(player1);
 }
 
@@ -242,7 +244,6 @@ int read_player_input(Player *player){
         printf("Nome do Objeto = %s | Eficiência do Objeto = %d\n", map[player->cell].object.name, map[player->cell].object.figh_efficiency_level);
         printf("Você deseja guardar o objeto?\n Responda s caso sim, ou n caso não\n");
         scanf("%s", answer);
-        printf("answer = %s\n", answer);
 
         if(strcmp(answer, "s") == 0){
             player->object = map[player->cell].object;
@@ -256,7 +257,6 @@ int read_player_input(Player *player){
         scanf("%d", &selected_option);
         //Gets 
         cell = cell_array[selected_option];
-        printf("CELL = %d\n", cell);
 
     }while(cell == -1);
     return cell;
@@ -277,22 +277,19 @@ int random_get_monster_cell(Monster *monster){
     return cell;
 }
 
-
-
 int get_player_decision(Player *player){
     Object object;
-    Object option_array[3] = {player->object, 10, 0};
+    int option_array[2] = {player->object.figh_efficiency_level, 0};
     int option = -1;
     int choosen_option = -1;
     int efitiency = 0;
     printf("Você encontrou o Monstro. Arregaçe as mangas porque agora vai ter que lutar!!\n");
     printf("Escolha de entre as opções abaixo o que deseja fazer.\n");
     do{
-        printf("0 - Lutar com -> %d | Eficiência -> %d\n", player->object, 20);
-        printf("1 - Lutar com -> Punhos há Homem | Eficiência -> 10\n");
-        printf("2 - Fugir Daqui para Fora\n");
-        scanf("%d", choosen_option);
-        //option = option_array[choosen_option];
+        printf("0 - Lutar com -> %s | Eficiência -> %d\n", player->object.name, player->object.figh_efficiency_level);
+        printf("1 - Fugir Daqui para Fora\n");
+        scanf("%d", &choosen_option);
+        option = option_array[choosen_option];
     }while(option == -1);
 
     return option;
@@ -328,6 +325,7 @@ int main(){
     //Player Thread and Monster_Thread Creation
     pthread_create(&monster_thread, NULL, change_monster_cell, (void *) &monster);
     pthread_create(&player_thread, NULL, change_player_cell, (void *) &player);
+    player.time_to_fight = 0;
     do
     {
 
@@ -345,10 +343,10 @@ int main(){
             //pthread_join makes the main thread wait for the other threads to finish
             pthread_join(monster_thread, NULL);
             pthread_join(player_thread, NULL);
-            
             printf("\nLUTAR\n");
-            //get_player_decision(&player);
-            change_monster_energy(&monster, 10);
+
+            //Changes Monster Energy on wich player decision
+            change_monster_energy(&monster, get_player_decision(&player));
         } 
         check = 1;
     }while (get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0);
