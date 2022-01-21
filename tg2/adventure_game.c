@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-
 #define MAX_PLAYER_NAME 50
 #define INITIAL_PLAYER_ENERGY 100
 #define INITIAL_MONSTER_ENERGY 100
@@ -151,7 +150,7 @@ void init_map(Cell *map){
     map[4].object_boolean = -1;
     map[4].object = object_array[0];
     strcpy(map[4].treasure, "O tesouro está nesta sala\n");
-    strcpy(map[4].description, "Esta é a sala 5, e para chegar ao tesouro, você tem de derrotar o monstro");
+    strcpy(map[4].description, "Esta é a sala 4, e para chegar ao tesouro, você tem de derrotar o monstro");
 }
 
 void print_map(Cell *map, int n_cells){
@@ -295,6 +294,17 @@ int get_player_decision(Player *player){
     return option;
 }
 
+int get_monster_decision(Monster *monster){
+    //Monster has a Heavy Atack and a Light Atack and can run away
+    int option_array[3] = {50, 30, 0};
+    int option = -1;
+    printf("Monstro: Agora é a minha vez!!\n");
+    do{
+        option = option_array[rand() % 3];
+    }while(option == -1);
+    return option;
+}
+
 int main(){
 
     Player player;
@@ -345,8 +355,11 @@ int main(){
             pthread_join(player_thread, NULL);
             printf("\nLUTAR\n");
 
-            //Changes Monster Energy on wich player decision
+            //Changes Monster Energy based on player decision
             change_monster_energy(&monster, get_player_decision(&player));
+            //Changes Player Energy based on player decision
+            change_player_energy(&player, get_monster_decision(&monster));
+            printf("Energia do Jogador = %d\n", player.energy);
         } 
         check = 1;
     }while (get_monster_energy(&monster) > 0 && get_player_energy(&player) > 0);
